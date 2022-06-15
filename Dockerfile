@@ -1,4 +1,4 @@
-FROM node:16-alpine
+FROM node:18-alpine
 #FROM node:16-bullseye-slim
 
 # Create app directory
@@ -11,6 +11,8 @@ COPY package*.json ./
 
 
 RUN npm install
+RUN npm install -g npm
+RUN npm audit fix --force
 # If you are building your code for production
 # RUN npm ci --only=production
 

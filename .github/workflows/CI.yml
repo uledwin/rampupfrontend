@@ -1,34 +1,36 @@
-name: 'Terraform CI Pipeline'
 
-on:
-  pull_request:
-    branches:  
-    - terraform_dev
-    - terraform_uat
-    - terraform_main
-    
-permissions:
-  contents: read
+# File: .github/workflows/workflow.yml
+
+on: [push]
+
+name: CI FrontEnd App
 
 jobs:
-  terraform:
-    name: 'Terraform CI Pipeline'
+
+  build-and-deploy:
     runs-on: ubuntu-latest
-    env:
-      ARM_CLIENT_ID: 97f36c8f-940d-4c8c-813e-e9af0f248f08
-      ARM_CLIENT_SECRET: ${{secrets.TF_ARM_CLIENT_SECRET}}
-      ARM_SUBSCRIPTION_ID: 4e7a46b2-ae3f-47ad-abc1-18787dd5c735
-      ARM_TENANT_ID: 0b3fc178-b730-4e8b-9843-e81259237b77
-      
-
-    # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
-    defaults:
-      run:
-        shell: bash
-
     steps:
-    - name: Dump GitHub context
-      env:
-        GITHUB_CONTEXT: ${{ toJson(github) }}
-      run: echo "$GITHUB_CONTEXT"
-
+    
+    - uses: actions/checkout@v2
+    - uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+        
+    - uses: azure/docker-login@v1
+      with:
+        login-server: eultengodevacr01.azurecr.io
+        username: 97f36c8f-940d-4c8c-813e-e9af0f248f08
+        password: ${{ secrets.TF_ARM_CLIENT_SECRET }}
+    
+    - run: |
+          docker build . -t eultengodevacr01.azurecr.io/frontend:${{ github.sha }}
+                   
+    - name: Container image scan
+      uses: Azure/container-scan@v0.1
+      with:
+        image-name: eultengodevacr01.azurecr.io/frontend:${{ github.sha }}
+        username: 97f36c8f-940d-4c8c-813e-e9af0f248f08
+        password: ${{ secrets.TF_ARM_CLIENT_SECRET }}
+    
+    - run: |
+         docker push eultengodevacr01.azurecr.io/frontend:${{ github.sha }}
