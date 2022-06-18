@@ -1,6 +1,6 @@
 {
   "name": "movie-analyst-ui",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "ui for the movie analyst website....im totally not ripping this off.......",
   "scripts": {
     "test": "mocha"
